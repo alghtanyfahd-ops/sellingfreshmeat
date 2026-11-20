@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تطبيق بيع لحوم الإبل والبقر والغنم | Pi Network</title>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    :root {
+      --primary: #8b1e1e;
+      --primary-dark: #681414;
+      --accent: #d97706;
+      --bg: #f8f6f4;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #15803d;
+      --danger: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .brand h1 {
+      font-size: 1.45rem;
+      margin-bottom: 4px;
+    }
+
+    .brand p {
+      font-size: 0.9rem;
+      opacity: 0.92;
+    }
+
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      transition: 0.2s ease;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-light {
+      background: #fff;
+      color: var(--primary-dark);
+      padding: 8px 14px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 16px;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 18px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 850px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+      color: var(--primary-dark);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .product-badge {
+      display: inline-block;
+      background: #fef2f2;
+      color: var(--primary);
+      font-size: 0.78rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .product-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .product-card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+
+    .price {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.05rem;
+    }
+
+    .cart-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      height: fit-content;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .cart-items {
+      margin: 12px 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: #e5e7eb;
+      color: #111827;
+      font-weight: bold;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.92rem;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    .status-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      white-space: pre-line;
+    }
+
+    .status-success {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: var(--success);
+    }
+
+    .status-error {
+      background: #fef2f2;
+      border-color: #fca5a5;
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1>🥩 تطبيق بيع لحوم الإبل والبقر والغنم</h1>
+        <p>لحوم طازجة • توصيل سريع • دفع عبر Pi Network</p>
+      </div>
+      <div class="auth-box">
+        <span id="userStatus">غير مسجل الدخول</span>
+        <button id="loginBtn" class="btn-light" onclick="authenticatePiUser()">دخول عبر Pi</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2 class="section-title">قائمة اللحوم الطازجة</h2>
+      <div id="productsGrid" class="products-grid"></div>
+    </section>
+
+    <aside class="cart-panel">
+      <h2 class="section-title">سلة الطلبات</h2>
+      <div id="cartItems" class="cart-items">
+        <p style="color: var(--muted); font-size: 0.9rem;">السلة فارغة حالياً.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="customerName">اسم المستلم</label>
+        <input type="text" id="customerName" placeholder="مثال: حيا" />
+      </div>
+
+      <div class="form-group">
+        <label for="customerEmail">البريد الإلكتروني لتأكيد الطلب (Hotmail)</label>
+        <input type="email" id="customerEmail" placeholder="name@hotmail.com" />
+      </div>
+
+      <div class="summary-line">
+        <span>الإجمالي:</span>
+        <span id="cartTotal">0.00 Pi</span>
+      </div>
+
+      <button id="checkoutBtn" class="btn-accent" onclick="checkoutWithPi()" disabled>
+        إتمام الدفع عبر Pi Network
+      </button>
+
+      <div id="statusBox" class="status-box">جاهز لاستقبال طلبك. يُنصح بتسجيل الدخول عبر Pi Browser.</div>
+    </aside>
+  </main>
+
+  <script>
+    const CONFIG = {
+      backendUrl: "http://localhost:3000",
+      piVersion: "2.0",
+      piSandbox: true,
+    };
+
+    const PRODUCTS = [
+      {
+        id: 1,
+        name: "لحم إبل طازج (1 كجم)",
+        desc: "لحم حاشي/إبل طازج مختار بعناية للطبخ والمندي.",
+        pricePi: 13.0,
+        badge: "لحوم الإبل",
+      },
+      {
+        id: 2,
+        name: "لحم بقر طازج (1 كجم)",
+        desc: "تقطيع طازج يومياً مناسب للشواء والستيك والمرق.",
+        pricePi: 11.5,
+        badge: "لحوم البقر",
+      },
+      {
+        id: 3,
+        name: "لحم غنم بلدي طازج (1 كجم)",
+        desc: "لحم غنم طازج عالي الطراوة مناسب للولائم والمشاوي.",
+        pricePi: 14.0,
+        badge: "لحوم الغنم",
+      },
+      {
+        id: 4,
+        name: "مفروم بقر وغنم طازج (1 كجم)",
+        desc: "مفروم طازج يومياً للكفتة والبرغر والمعجنات.",
+        pricePi: 9.5,
+        badge: "طازج اليوم",
+      },
+    ];
+
+    let cart = [];
+    let currentPiUser = null;
+
+    function initPiSdk() {
+      if (window.Pi && typeof window.Pi.init === "function") {
+        window.Pi.init({
+          version: CONFIG.piVersion,
+          sandbox: CONFIG.piSandbox,
+        });
+        setStatus("تم تهيئة Pi SDK بنجاح.", "normal");
+      } else {
+        setStatus("تنبيه: Pi SDK غير مكتشف (افتح الصفحة داخل Pi Browser لتجربة الدفع الفعلي).", "normal");
+      }
+    }
+
+    function setStatus(message, type = "normal") {
+      const box = document.getElementById("statusBox");
+      box.textContent = message;
+      box.className = "status-box";
+      if (type === "success") box.classList.add("status-success");
+      if (type === "error") box.classList.add("status-error");
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("productsGrid");
+      grid.innerHTML = PRODUCTS.map(
+        (p) => `
+          <article class="product-card">
+            <div>
+              <span class="product-badge">${p.badge}</span>
+              <h3>${p.name}</h3>
+              <p>${p.desc}</p>
+            </div>
+            <div class="price-row">
+              <span class="price">${p.pricePi.toFixed(2)} Pi</span>
+              <button class="btn-primary" onclick="addToCart(${p.id})">أضف للسلة</button>
+            </div>
+          </article>
+        `
+      ).join("");
+    }
+
+    function addToCart(productId) {
+      const product = PRODUCTS.find((p) => p.id === productId);
+      if (!product) return;
+
+      const existing = cart.find((item) => item.id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...product, quantity: 1 });
+      }
+      renderCart();
+    }
+
+    function changeQty(productId, delta) {
+      const item = cart.find((i) => i.id === productId);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter((i) => i.id !== productId);
+      }
+      renderCart();
+    }
+
+    function getCartTotal() {
+      return Number(
+        cart.reduce((sum, item) => sum + item.pricePi * item.quantity, 0).toFixed(2)
+      );
+    }
+
+    function renderCart() {
+      const cartEl = document.getElementById("cartItems");
+      const totalEl = document.getElementById("cartTotal");
+      const checkoutBtn = document.getElementById("checkoutBtn");
+
+      if (cart.length === 0) {
+        cartEl.innerHTML = `<p style="color: var(--muted); font-size: 0.9rem;">السلة فارغة حالياً.</p>`;
+        totalEl.textContent = "0.00 Pi";
+        checkoutBtn.disabled = true;
+        return;
+      }
+
+      cartEl.innerHTML = cart
+        .map(
+          (item) => `
+            <div class="cart-item">
+              <div>
+                <strong>${item.name}</strong><br />
+                <small style="color: var(--muted);">${(item.pricePi * item.quantity).toFixed(2)} Pi</small>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                <span>${item.quantity}</span>
+                <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+              </div>
+            </div>
+          `
+        )
+        .join("");
+
+      const total = getCartTotal();
+      totalEl.textContent = `${total.toFixed(2)} Pi`;
+      checkoutBtn.disabled = false;
+    }
+
+    async function authenticatePiUser() {
+      if (!window.Pi) {
+        setStatus("Pi SDK غير متوفر في هذا المتصفح. افتح التطبيق عبر Pi Browser.", "error");
+        return;
+      }
+
+      try {
+        setStatus("جاري تسجيل الدخول عبر Pi Network...", "normal");
+        const scopes = ["username", "payments"];
+        const onIncompletePaymentFound = (payment) => {
+          console.warn("دفعة سابقة غير مكتملة:", payment);
+        };
+
+        const auth = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
+        currentPiUser = auth.user;
+        document.getElementById("userStatus").textContent = `مرحباً: @${currentPiUser.username}`;
+        document.getElementById("loginBtn").textContent = "تم الدخول";
+
+        const nameInput = document.getElementById("customerName");
+        if (!nameInput.value.trim()) {
+          nameInput.value = currentPiUser.username;
+        }
+
+        setStatus(`تم تسجيل الدخول بنجاح بحساب @${currentPiUser.username}`, "success");
+      } catch (err) {
+        setStatus(`فشل تسجيل الدخول: ${err.message || err}`, "error");
+      }
+    }
+
+    async function sendOrderNotificationToBackend(orderPayload) {
+      const response = await fetch(`${CONFIG.backendUrl}/api/orders/notify-hotmail`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
+      return await response.json();
+    }
+
+    async function checkoutWithPi() {
+      const totalPi = getCartTotal();
+      if (totalPi <= 0) {
+        setStatus("السلة فارغة.", "error");
+        return;
+      }
+
+      if (!window.Pi) {
+        setStatus("لا يمكن إتمام دفع Pi خارج Pi Browser.", "error");
+        return;
+      }
+
+      if (!currentPiUser) {
+        await authenticatePiUser();
+        if (!currentPiUser) return;
+      }
+
+      const orderId = `MEAT-${Date.now()}`;
+      const customerName =
+        document.getElementById("customerName").value.trim() || currentPiUser.username;
+      const customerEmail = document.getElementById("customerEmail").value.trim();
+
+      const formattedItems = cart.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: (item.pricePi * item.quantity).toFixed(2),
+      }));
+
+      setStatus(`جاري إنشاء طلب الدفع #${orderId} بقيمة ${totalPi} Pi...`, "normal");
+
+      window.Pi.createPayment(
+        {
+          amount: totalPi,
+          memo: `طلب لحوم طازجة #${orderId}`,
+          metadata: {
+            orderId,
+            customerName,
+            customerEmail,
+            items: formattedItems,
+          },
+        },
+        {
+          onReadyForServerApproval: async function (paymentId) {
+            setStatus(`تم إنشاء الدفع (${paymentId}). بانتظار موافقة الخادم...`, "normal");
+            await fetch(`${CONFIG.backendUrl}/api/pi/approve`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId }),
+            });
+          },
+          onReadyForServerCompletion: async function (paymentId, txid) {
+            setStatus(`تم تأكيد المعاملة (${txid}). جاري إكمال الطلب وإرسال إشعار Hotmail...`, "normal");
+            await fetch(`${CONFIG.backendUrl}/api/pi/complete`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId, txid }),
+            });
+
+            const mailRes = await sendOrderNotificationToBackend({
+              orderId,
+              customerName,
+              customerEmail,
+              items: formattedItems,
+              totalPi,
+              paymentTxid: txid,
+            });
+
+            cart = [];
+            renderCart();
+
+            setStatus(
+              `✅ تم إتمام الطلب #${orderId} بنجاح!\n` +
+                `رقم المعاملة (TXID): ${txid}\n` +
+                `حالة البريد (Hotmail): ${mailRes.message || "تم الإرسال"}`,
+              "success"
+            );
+          },
+          onCancel: function () {
+            setStatus("تم إلغاء عملية الدفع بواسطة المستخدم.", "error");
+          },
+          onError: function (error) {
+            setStatus(`حدث خطأ أثناء الدفع: ${error.message || error}`, "error");
+          },
+        }
+      );
+    }
+
+    renderProducts();
+    renderCart();
+    initPiSdk();
+  </script>
+</body>
+</html>
