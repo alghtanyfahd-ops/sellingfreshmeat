@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// إعداد ناقل البريد (SMTP) لحساب Hotmail / Outlook
 const transporter = nodemailer.createTransport({
   host: 'smtp-mail.outlook.com',
   port: 587,
@@ -20,19 +21,22 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify((error) => {
-  if (error) {
-    console.error('❌ فشل الاتصال بخادم Hotmail SMTP:', error.message);
-  } else {
-    console.log('✅ خادم Hotmail SMTP جاهز لإرسال الإشعارات');
-  }
+// مسار اختبار للتأكد من أن الخادم يعمل على Vercel
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'خادم متجر اللحوم الطازجة يعمل بنجاح على Vercel',
+  });
 });
 
-// الموافقة المبدئية على دفعة Pi من الخادم
+// 1. الموافقة المبدئية على دفعة Pi من الخادم
 app.post('/api/pi/approve', async (req, res) => {
   const { paymentId } = req.body;
   if (!paymentId || !process.env.PI_API_KEY) {
-    return res.status(400).json({ success: false, message: 'paymentId أو PI_API_KEY مفقود.' });
+    return res.status(400).json({
+      success: false,
+      message: 'paymentId أو PI_API_KEY مفقود.',
+    });
   }
 
   try {
@@ -50,11 +54,14 @@ app.post('/api/pi/approve', async (req, res) => {
   }
 });
 
-// إكمال دفعة Pi بعد تأكيد المعاملة على الشبكة
+// 2. إكمال دفعة Pi بعد تأكيد المعاملة على الشبكة
 app.post('/api/pi/complete', async (req, res) => {
   const { paymentId, txid } = req.body;
   if (!paymentId || !txid || !process.env.PI_API_KEY) {
-    return res.status(400).json({ success: false, message: 'paymentId أو txid أو PI_API_KEY مفقود.' });
+    return res.status(400).json({
+      success: false,
+      message: 'paymentId أو txid أو PI_API_KEY مفقود.',
+    });
   }
 
   try {
@@ -73,7 +80,7 @@ app.post('/api/pi/complete', async (req, res) => {
   }
 });
 
-// إرسال إشعار الطلب عبر Hotmail
+// 3. إرسال إشعار الطلب عبر Hotmail
 app.post('/api/orders/notify-hotmail', async (req, res) => {
   const { orderId, customerName, customerEmail, items, totalPi, paymentTxid } = req.body;
 
@@ -138,7 +145,13 @@ app.post('/api/orders/notify-hotmail', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 الخادم يعمل على http://localhost:${PORT}`);
-});
+// تصدير التطبيق للعمل كـ Serverless Function على Vercel
+module.exports = app;
+
+// التشغيل المحلي فقط عند التجربة على جهازك
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 الخادم يعمل محلياً على http://localhost:${PORT}`);
+  });
+}
